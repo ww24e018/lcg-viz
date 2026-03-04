@@ -71,12 +71,14 @@ Record where each item lands. After K runs, build an N×N frequency matrix:
 - Watch for: diagonal stripes, dark/light rows or columns → indicate systematic bias
 
 **Legend (below heatmap):**
-- Four labeled swatches: `min`, `avg`, `med`, `max`
+- Four labeled swatches always ordered by value: `min`, lower-of(avg/med), upper-of(avg/med), `max`
 - `avg` = K/N (analytical expected value per cell); `med` = median of all N×N cell counts
+- avg and med swap positions as parameters change — which is larger indicates skew direction
 - Helps gauge how large the actual deviation is relative to the expected uniform distribution
 
 **Interaction:**
 - Hover tooltip: `item i → slot j: count times`
+- Color scale selector (inside heatmap card, above the SVG): dropdown + left/right arrow keys cycle through scales when the selector is focused
 
 **Default params:** N = 52, K = 2 000
 
@@ -114,9 +116,12 @@ For each seed (x-axis = seed index 0..K), where does element `0` land after the 
 
 ## App controls
 
+Global controls bar:
 - **N slider** (array size): range 8–52, default 52
 - **K slider** (seed count): range 500–20 000, default 2 000 (shared between both charts)
-- **Color scale** (heatmap only): dropdown — YlGnBu (default), Viridis, Plasma, Inferno, Magma, Warm, Cool, RdYlGn
+
+Heatmap card (internal):
+- **Color scale**: dropdown inside the heatmap card — YlGnBu (default), Viridis, Plasma, Inferno, Magma, Warm, Cool, RdYlGn; left/right arrow keys cycle through scales when focused
 
 ---
 

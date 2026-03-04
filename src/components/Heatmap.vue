@@ -45,10 +45,13 @@ const legendValues = computed(() => {
 const legendItems = computed(() => {
   const v = legendValues.value
   if (!v) return []
-  return [
-    { label: 'min', value: v.min },
+  const middle = [
     { label: 'avg', value: v.avg },
     { label: 'med', value: v.median },
+  ].sort((a, b) => a.value - b.value)
+  return [
+    { label: 'min', value: v.min },
+    ...middle,
     { label: 'max', value: v.max },
   ]
 })
@@ -59,6 +62,15 @@ const colorFn = computed(() => {
   const interp = INTERPOLATORS[colorScale.value] ?? d3.interpolateYlGnBu
   return d3.scaleSequential(interp).domain([v.min, v.max])
 })
+
+function onScaleKeydown(e: KeyboardEvent) {
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+  e.preventDefault()
+  const idx = COLOR_SCALES.indexOf(colorScale.value)
+  colorScale.value = e.key === 'ArrowLeft'
+    ? COLOR_SCALES[(idx - 1 + COLOR_SCALES.length) % COLOR_SCALES.length]!
+    : COLOR_SCALES[(idx + 1) % COLOR_SCALES.length]!
+}
 
 function formatLegendValue(item: { label: string; value: number }): string {
   return item.label === 'avg' ? item.value.toFixed(1) : String(Math.round(item.value))
@@ -73,13 +85,15 @@ function render() {
   const available = containerWidth.value - MARGIN.left - MARGIN.right
   const cellSize = Math.max(MIN_CELL, Math.floor(available / n))
   const size = cellSize * n
-  const totalW = size + MARGIN.left + MARGIN.right
+  const remainder = available - size
+  const offsetLeft = MARGIN.left + Math.floor(remainder / 2)
+  const totalW = containerWidth.value
   const totalH = size + MARGIN.top + MARGIN.bottom
 
   svg.attr('width', totalW).attr('height', totalH)
   svg.selectAll('*').remove()
 
-  const g = svg.append('g').attr('transform', `translate(${MARGIN.left},${MARGIN.top})`)
+  const g = svg.append('g').attr('transform', `translate(${offsetLeft},${MARGIN.top})`)
 
   const tooltip = d3.select(tooltipRef.value)
 
@@ -133,7 +147,7 @@ watch(
 <template>
   <div ref="containerRef" class="heatmap-container">
     <div class="heatmap-controls">
-      <select v-model="colorScale" class="heatmap-scale-select">
+      <select v-model="colorScale" class="heatmap-scale-select" @keydown="onScaleKeydown">
         <option v-for="s in COLOR_SCALES" :key="s" :value="s">{{ s }}</option>
       </select>
       <span class="heatmap-scale-hint">← color scale</span>
@@ -141,7 +155,7 @@ watch(
     <svg ref="svgRef" />
     <div ref="tooltipRef" class="tooltip" />
     <div class="heatmap-legend" v-if="legendValues && colorFn">
-      <div class="legend-item" v-for="item in legendItems" :key="item.label">
+      <div class="legend-item" v-for="(item, i) in legendItems" :key="i">
         <span class="legend-swatch" :style="{ background: colorFn(item.value) }"></span>
         <span class="legend-label">{{ item.label }}</span>
         <span class="legend-value">{{ formatLegendValue(item) }}</span>
