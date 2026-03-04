@@ -6,6 +6,11 @@ import Scatter from './components/Scatter.vue'
 
 const N = ref(52)
 const K = ref(2000)
+const seedMsb  = ref(0)   // 0–15, top nibble
+const seedLsb  = ref(0)   // 0–15, bottom nibble
+const seedStep = ref(1)   // 1–15
+
+const startSeed = computed(() => ((seedMsb.value << 28) | seedLsb.value) >>> 0)
 
 // N×N frequency matrix: matrix[i][j] = how many times item i landed in slot j
 const heatmapMatrix = computed<number[][]>(() => {
@@ -13,7 +18,8 @@ const heatmapMatrix = computed<number[][]>(() => {
   const k = K.value
   const arr = Array.from({ length: n }, (_, i) => i)
   const matrix: number[][] = Array.from({ length: n }, () => new Array(n).fill(0))
-  for (let seed = 0; seed < k; seed++) {
+  for (let i = 0; i < k; i++) {
+    const seed = ((startSeed.value + i * seedStep.value) >>> 0)
     const shuffled = seededShuffle(arr, seed)
     for (let pos = 0; pos < n; pos++) {
       matrix[shuffled[pos]!]![pos]!++
@@ -28,9 +34,10 @@ const scatterPoints = computed<Array<{ x: number; y: number }>>(() => {
   const k = K.value
   const arr = Array.from({ length: n }, (_, i) => i)
   const points: Array<{ x: number; y: number }> = []
-  for (let seed = 0; seed < k; seed++) {
+  for (let i = 0; i < k; i++) {
+    const seed = ((startSeed.value + i * seedStep.value) >>> 0)
     const shuffled = seededShuffle(arr, seed)
-    points.push({ x: seed, y: shuffled.indexOf(0) })
+    points.push({ x: i, y: shuffled.indexOf(0) })
   }
   return points
 })
@@ -38,8 +45,8 @@ const scatterPoints = computed<Array<{ x: number; y: number }>>(() => {
 
 <template>
   <header>
-    <h1>LCG Shuffle Validator</h1>
-    <p class="subtitle">Visual bias check for the seeded Fisher-Yates shuffle (Knuth LCG constants)</p>
+    <h1>LCG Shuffle Explorer</h1>
+    <p class="subtitle">Probe the seeded Fisher-Yates shuffle across the 32-bit seed space (Knuth LCG constants)</p>
   </header>
 
   <div class="controls">
@@ -52,6 +59,25 @@ const scatterPoints = computed<Array<{ x: number; y: number }>>(() => {
       <label>K — seed count</label>
       <input type="range" min="500" max="20000" step="500" v-model.number="K" />
       <span class="control-value">{{ K.toLocaleString() }}</span>
+    </div>
+    <div class="control-group">
+      <label>Seed MSB nibble</label>
+      <input type="range" min="0" max="15" step="1" v-model.number="seedMsb" />
+      <span class="control-value">{{ seedMsb }}</span>
+    </div>
+    <div class="control-group">
+      <label>Seed LSB nibble</label>
+      <input type="range" min="0" max="15" step="1" v-model.number="seedLsb" />
+      <span class="control-value">{{ seedLsb }}</span>
+    </div>
+    <div class="control-group">
+      <label>Seed step</label>
+      <input type="range" min="1" max="15" step="1" v-model.number="seedStep" />
+      <span class="control-value">{{ seedStep }}</span>
+    </div>
+    <div class="control-group">
+      <label>Start seed</label>
+      <span class="control-value seed-hex">0x{{ startSeed.toString(16).toUpperCase().padStart(8, '0') }}</span>
     </div>
   </div>
 
