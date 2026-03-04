@@ -23,7 +23,7 @@ npm run preview  # preview the production build
 
 ```
 src/
-  lcg.ts              ← seededShuffle + minuteSeed functions (verbatim from portfolio)
+  lcg.ts              ← minuteSeed, lcg (step fn), lcgIterator (generator), seededShuffle
   App.vue             ← layout shell + controls (N slider, K slider)
   components/
     Heatmap.vue       ← D3 position-frequency heatmap

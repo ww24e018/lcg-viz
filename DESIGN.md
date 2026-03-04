@@ -11,25 +11,33 @@ run the function over many seeds and look for unexpected patterns (stripes, band
 
 ---
 
-## Algorithm (verbatim from portfolio `AboutView.vue`)
+## Algorithm
+
+Original source: portfolio `AboutView.vue`. The LCG step has since been extracted into
+a named function and generator to allow standalone visualisation of the raw LCG sequence.
+The shuffle output is identical to the original.
 
 ```ts
-function minuteSeed(): number {
-  const now = new Date()
-  return (
-    now.getFullYear() * 1000000 +
-    (now.getMonth() + 1) * 10000 +
-    now.getDate() * 100 +
-    now.getHours() * 100 +
-    now.getMinutes()
-  )
+// One LCG step (Knuth constants)
+function lcg(s: number): number {
+  return (s * 1664525 + 1013904223) & 0xffffffff
 }
 
-function seededShuffle<T>(arr: T[], seed: number): T[] {
+// Infinite generator — yields the raw LCG sequence from a seed
+export function* lcgIterator(seed: number): Generator<number, never, unknown> {
+  let s: number = lcg(seed)
+  while (true) {
+    yield s
+    s = lcg(s)
+  }
+}
+
+// Fisher-Yates shuffle driven by lcgIterator
+export function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr]
-  let s = seed
+  const lcgSeries = lcgIterator(seed)
   for (let i = a.length - 1; i > 0; i--) {
-    s = (s * 1664525 + 1013904223) & 0xffffffff
+    const s = lcgSeries.next().value
     const j = Math.abs(s) % (i + 1)
     ;[a[i], a[j]] = [a[j], a[i]]
   }
