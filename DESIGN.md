@@ -66,14 +66,21 @@ Record where each item lands. After K runs, build an N×N frequency matrix:
 
 **Rendering (D3):**
 - N×N grid of colored rectangles
-- Color scale: sequential (e.g., light yellow → dark blue), mapped to frequency count
+- Color scale: sequential (user-selectable; default YlGnBu: light yellow → dark blue), mapped to min/max frequency
 - A perfectly uniform shuffle → all cells roughly the same color (count ≈ K/N)
 - Watch for: diagonal stripes, dark/light rows or columns → indicate systematic bias
 
+**Legend (below heatmap):**
+- Four labeled swatches always ordered by value: `min`, lower-of(avg/med), upper-of(avg/med), `max`
+- `avg` = K/N (analytical expected value per cell); `med` = median of all N×N cell counts
+- avg and med swap positions as parameters change — which is larger indicates skew direction
+- Helps gauge how large the actual deviation is relative to the expected uniform distribution
+
 **Interaction:**
 - Hover tooltip: `item i → slot j: count times`
+- Color scale selector (inside heatmap card, above the SVG): dropdown + left/right arrow keys cycle through scales when the selector is focused
 
-**Default params:** N = 52, K = 10 000
+**Default params:** N = 52, K = 2 000
 
 ---
 
@@ -109,9 +116,12 @@ For each seed (x-axis = seed index 0..K), where does element `0` land after the 
 
 ## App controls
 
+Global controls bar:
 - **N slider** (array size): range 8–52, default 52
-- **K slider** (seed count): range 500–20 000, default 10 000 (heatmap) / 2 000 (scatter)
-- Or share a single K control — both charts update reactively
+- **K slider** (seed count): range 500–20 000, default 2 000 (shared between both charts)
+
+Heatmap card (internal):
+- **Color scale**: dropdown inside the heatmap card — YlGnBu (default), Viridis, Plasma, Inferno, Magma, Warm, Cool, RdYlGn; left/right arrow keys cycle through scales when focused
 
 ---
 
@@ -134,9 +144,10 @@ function render() {
 }
 ```
 
-- Vue template: only `<svg ref="svgRef" />`
+- Vue template: `<svg ref="svgRef" />` plus a container `div` for ResizeObserver
 - D3 handles all child elements (rects, circles, axes, tooltips)
 - Props pass computed data (matrix or points array) from App.vue
+- `ResizeObserver` on the container div drives a `containerWidth` ref; `render()` derives SVG dimensions from it — enables responsive sizing without fixed pixel widths
 
 ---
 
