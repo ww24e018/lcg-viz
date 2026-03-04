@@ -6,9 +6,6 @@ import Scatter from './components/Scatter.vue'
 
 const N = ref(52)
 const K = ref(2000)
-const colorScale = ref('YlGnBu')
-
-const COLOR_SCALES = ['YlGnBu', 'Viridis', 'Plasma', 'Inferno', 'Magma', 'Warm', 'Cool', 'RdYlGn']
 
 // N×N frequency matrix: matrix[i][j] = how many times item i landed in slot j
 const heatmapMatrix = computed<number[][]>(() => {
@@ -56,18 +53,12 @@ const scatterPoints = computed<Array<{ x: number; y: number }>>(() => {
       <input type="range" min="500" max="20000" step="500" v-model.number="K" />
       <span class="control-value">{{ K.toLocaleString() }}</span>
     </div>
-    <div class="control-group">
-      <label>Color scale</label>
-      <select v-model="colorScale">
-        <option v-for="s in COLOR_SCALES" :key="s" :value="s">{{ s }}</option>
-      </select>
-    </div>
   </div>
 
   <div class="charts">
     <div class="chart-card">
       <div class="chart-title">Position Heatmap — item i → slot j frequency</div>
-      <Heatmap :matrix="heatmapMatrix" :n="N" :k="K" :colorScale="colorScale" />
+      <Heatmap :matrix="heatmapMatrix" :n="N" :k="K" />
     </div>
     <div class="chart-card">
       <div class="chart-title">Scatter — where does item 0 land per seed?</div>

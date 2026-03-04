@@ -6,13 +6,15 @@ const props = defineProps<{
   matrix: number[][]
   n: number
   k: number
-  colorScale: string
 }>()
 
 const svgRef = ref<SVGSVGElement | null>(null)
 const tooltipRef = ref<HTMLDivElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 const containerWidth = ref(520)
+
+const COLOR_SCALES = ['YlGnBu', 'Viridis', 'Plasma', 'Inferno', 'Magma', 'Warm', 'Cool', 'RdYlGn']
+const colorScale = ref('YlGnBu')
 
 const MARGIN = { top: 10, right: 10, bottom: 10, left: 10 }
 const MIN_CELL = 4
@@ -54,7 +56,7 @@ const legendItems = computed(() => {
 const colorFn = computed(() => {
   const v = legendValues.value
   if (!v) return null
-  const interp = INTERPOLATORS[props.colorScale] ?? d3.interpolateYlGnBu
+  const interp = INTERPOLATORS[colorScale.value] ?? d3.interpolateYlGnBu
   return d3.scaleSequential(interp).domain([v.min, v.max])
 })
 
@@ -122,7 +124,7 @@ onMounted(() => {
 onUnmounted(() => ro?.disconnect())
 
 watch(
-  () => [props.matrix, props.n, props.k, props.colorScale, containerWidth.value],
+  () => [props.matrix, props.n, props.k, colorScale.value, containerWidth.value],
   render,
   { deep: true }
 )
@@ -130,6 +132,11 @@ watch(
 
 <template>
   <div ref="containerRef" class="heatmap-container">
+    <div class="heatmap-controls">
+      <select v-model="colorScale" class="heatmap-scale-select">
+        <option v-for="s in COLOR_SCALES" :key="s" :value="s">{{ s }}</option>
+      </select>
+    </div>
     <svg ref="svgRef" />
     <div ref="tooltipRef" class="tooltip" />
     <div class="heatmap-legend" v-if="legendValues && colorFn">

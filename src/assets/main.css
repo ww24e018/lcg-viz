@@ -113,6 +113,13 @@ h1 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1rem 1.25rem 1.25rem;
+  min-width: 0;          /* allow grid item to shrink below content width */
+  overflow: hidden;      /* prevent SVG from poking outside the card */
+}
+
+.chart-card svg {
+  max-width: 100%;
+  display: block;
 }
 
 .chart-title {
@@ -155,12 +162,35 @@ svg text {
   width: 100%;
 }
 
+/* Heatmap internal controls */
+.heatmap-controls {
+  margin-bottom: 0.6rem;
+}
+
+.heatmap-scale-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.8rem;
+  padding: 0.25rem 0.4rem;
+  cursor: pointer;
+}
+
+.heatmap-scale-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 /* Heatmap legend */
 .heatmap-legend {
   display: flex;
   gap: 1.25rem;
   margin-top: 0.75rem;
   flex-wrap: wrap;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  padding: 0.45rem 0.6rem;
 }
 
 .legend-item {
