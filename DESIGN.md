@@ -87,11 +87,11 @@ Record where each item lands. After K runs, build an N×N frequency matrix:
 ### 2. Scatter / Dot Cloud
 
 **What it shows:**
-For each seed (x-axis = seed index 0..K), where does element `0` land after the shuffle (y-axis = output position 0..N-1)?
+For each run i (x-axis = loop index 0..K-1), where does element `0` land after the shuffle (y-axis = output position 0..N-1)?
 
 **Rendering (D3):**
 - SVG scatter plot
-- X: seed index, Y: landing position of item 0
+- X: loop index (0..K-1), Y: landing position of item 0
 - Each point = one shuffle run
 - Good result → noise-like cloud filling the space
 - Bad result → diagonal bands, horizontal stripes, periodic patterns
@@ -119,6 +119,12 @@ For each seed (x-axis = seed index 0..K), where does element `0` land after the 
 Global controls bar:
 - **N slider** (array size): range 8–52, default 52
 - **K slider** (seed count): range 500–20 000, default 2 000 (shared between both charts)
+- **Seed MSB nibble** (bits 28–31 of start seed): range 0–15, default 0
+- **Seed LSB nibble** (bits 0–3 of start seed): range 0–15, default 0
+- **Seed step**: increment between consecutive seeds in the sampling loop: range 1–15, default 1
+- **Start seed** (read-only): computed as `(msb << 28) | lsb`, displayed in hex (`0x` + 8-digit uppercase)
+
+Seed for run i = `((startSeed + i * step) >>> 0)`. Defaults reproduce original behaviour (seeds 0..K-1).
 
 Heatmap card (internal):
 - **Color scale**: dropdown inside the heatmap card — YlGnBu (default), Viridis, Plasma, Inferno, Magma, Warm, Cool, RdYlGn; left/right arrow keys cycle through scales when focused

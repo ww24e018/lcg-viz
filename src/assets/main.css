@@ -229,3 +229,7 @@ svg text {
   color: var(--text);
   font-weight: 600;
 }
+
+.seed-hex {
+  font-family: monospace;
+}
