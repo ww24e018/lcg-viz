@@ -21,12 +21,12 @@ export function* lcgIterator(seed: number): Generator<number, never, unknown> {
   }
 }
 
-export function seededShuffle<T>(arr: T[], seed: number): T[] {
+export function seededShuffle<T>(arr: T[], seed: number, shift = 0): T[] {
   const a = [...arr]
   const lcgSeries = lcgIterator(seed)
   for (let i = a.length - 1; i > 0; i--) {
     const s = lcgSeries.next().value
-    const j = Math.abs(s) % (i + 1)
+    const j = (s >>> shift) % (i + 1)
     const tmp = a[i] as T
     a[i] = a[j] as T
     a[j] = tmp

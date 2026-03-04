@@ -9,6 +9,7 @@ const K = ref(2000)
 const seedMsb  = ref(0)   // 0–15, top nibble
 const seedLsb  = ref(0)   // 0–15, bottom nibble
 const seedStep = ref(1)   // 1–15
+const lcgShift = ref(0)   // 0–31, right-shift applied to LCG output before modulo
 
 const startSeed = computed(() => ((seedMsb.value << 28) | seedLsb.value) >>> 0)
 
@@ -20,7 +21,7 @@ const heatmapMatrix = computed<number[][]>(() => {
   const matrix: number[][] = Array.from({ length: n }, () => new Array(n).fill(0))
   for (let i = 0; i < k; i++) {
     const seed = ((startSeed.value + i * seedStep.value) >>> 0)
-    const shuffled = seededShuffle(arr, seed)
+    const shuffled = seededShuffle(arr, seed, lcgShift.value)
     for (let pos = 0; pos < n; pos++) {
       matrix[shuffled[pos]!]![pos]!++
     }
@@ -36,7 +37,7 @@ const scatterPoints = computed<Array<{ x: number; y: number }>>(() => {
   const points: Array<{ x: number; y: number }> = []
   for (let i = 0; i < k; i++) {
     const seed = ((startSeed.value + i * seedStep.value) >>> 0)
-    const shuffled = seededShuffle(arr, seed)
+    const shuffled = seededShuffle(arr, seed, lcgShift.value)
     points.push({ x: i, y: shuffled.indexOf(0) })
   }
   return points
@@ -78,6 +79,11 @@ const scatterPoints = computed<Array<{ x: number; y: number }>>(() => {
     <div class="control-group">
       <label>Start seed</label>
       <span class="control-value seed-hex">0x{{ startSeed.toString(16).toUpperCase().padStart(8, '0') }}</span>
+    </div>
+    <div class="control-group">
+      <label>LCG bit shift</label>
+      <input type="range" min="0" max="31" step="1" v-model.number="lcgShift" />
+      <span class="control-value">{{ lcgShift }}</span>
     </div>
   </div>
 
