@@ -165,6 +165,14 @@ svg text {
 /* Heatmap internal controls */
 .heatmap-controls {
   margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.heatmap-scale-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .heatmap-scale-select {
@@ -206,7 +214,7 @@ svg text {
   width: 14px;
   height: 14px;
   border-radius: 2px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
 }
 

@@ -136,6 +136,7 @@ watch(
       <select v-model="colorScale" class="heatmap-scale-select">
         <option v-for="s in COLOR_SCALES" :key="s" :value="s">{{ s }}</option>
       </select>
+      <span class="heatmap-scale-hint">← color scale</span>
     </div>
     <svg ref="svgRef" />
     <div ref="tooltipRef" class="tooltip" />
