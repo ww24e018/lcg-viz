@@ -1,25 +1,75 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps<{
   matrix: number[][]
   n: number
   k: number
+  colorScale: string
 }>()
 
 const svgRef = ref<SVGSVGElement | null>(null)
 const tooltipRef = ref<HTMLDivElement | null>(null)
+const containerRef = ref<HTMLDivElement | null>(null)
+const containerWidth = ref(520)
 
 const MARGIN = { top: 10, right: 10, bottom: 10, left: 10 }
-const MAX_SIZE = 520
+const MIN_CELL = 4
+
+const INTERPOLATORS: Record<string, (t: number) => string> = {
+  YlGnBu:  d3.interpolateYlGnBu,
+  Viridis: d3.interpolateViridis,
+  Plasma:  d3.interpolatePlasma,
+  Inferno: d3.interpolateInferno,
+  Magma:   d3.interpolateMagma,
+  Warm:    d3.interpolateWarm,
+  Cool:    d3.interpolateCool,
+  RdYlGn:  d3.interpolateRdYlGn,
+}
+
+const legendValues = computed(() => {
+  const flat = props.matrix.flat()
+  if (!flat.length) return null
+  const sorted = [...flat].sort((a, b) => a - b)
+  return {
+    min:    sorted[0]!,
+    avg:    props.k / props.n,
+    median: d3.median(sorted) ?? 0,
+    max:    sorted[sorted.length - 1]!,
+  }
+})
+
+const legendItems = computed(() => {
+  const v = legendValues.value
+  if (!v) return []
+  return [
+    { label: 'min', value: v.min },
+    { label: 'avg', value: v.avg },
+    { label: 'med', value: v.median },
+    { label: 'max', value: v.max },
+  ]
+})
+
+const colorFn = computed(() => {
+  const v = legendValues.value
+  if (!v) return null
+  const interp = INTERPOLATORS[props.colorScale] ?? d3.interpolateYlGnBu
+  return d3.scaleSequential(interp).domain([v.min, v.max])
+})
+
+function formatLegendValue(item: { label: string; value: number }): string {
+  return item.label === 'avg' ? item.value.toFixed(1) : String(Math.round(item.value))
+}
 
 function render() {
   const svg = d3.select(svgRef.value)
-  if (!svgRef.value || props.matrix.length === 0) return
+  if (!svgRef.value || props.matrix.length === 0 || !colorFn.value) return
 
   const n = props.n
-  const cellSize = Math.floor((MAX_SIZE - MARGIN.left - MARGIN.right) / n)
+  const color = colorFn.value
+  const available = containerWidth.value - MARGIN.left - MARGIN.right
+  const cellSize = Math.max(MIN_CELL, Math.floor(available / n))
   const size = cellSize * n
   const totalW = size + MARGIN.left + MARGIN.right
   const totalH = size + MARGIN.top + MARGIN.bottom
@@ -28,12 +78,6 @@ function render() {
   svg.selectAll('*').remove()
 
   const g = svg.append('g').attr('transform', `translate(${MARGIN.left},${MARGIN.top})`)
-
-  const flat = props.matrix.flat()
-  const maxVal = d3.max(flat) ?? 1
-  const minVal = d3.min(flat) ?? 0
-
-  const color = d3.scaleSequential(d3.interpolateYlGnBu).domain([minVal, maxVal])
 
   const tooltip = d3.select(tooltipRef.value)
 
@@ -60,13 +104,40 @@ function render() {
   }
 }
 
-onMounted(render)
-watch(() => [props.matrix, props.n, props.k], render, { deep: true })
+let ro: ResizeObserver | null = null
+
+onMounted(() => {
+  render()
+  if (containerRef.value) {
+    ro = new ResizeObserver(entries => {
+      const w = entries[0]?.contentRect.width
+      if (w !== undefined && Math.abs(w - containerWidth.value) > 1) {
+        containerWidth.value = w
+      }
+    })
+    ro.observe(containerRef.value)
+  }
+})
+
+onUnmounted(() => ro?.disconnect())
+
+watch(
+  () => [props.matrix, props.n, props.k, props.colorScale, containerWidth.value],
+  render,
+  { deep: true }
+)
 </script>
 
 <template>
-  <div style="position: relative; display: inline-block">
+  <div ref="containerRef" class="heatmap-container">
     <svg ref="svgRef" />
     <div ref="tooltipRef" class="tooltip" />
+    <div class="heatmap-legend" v-if="legendValues && colorFn">
+      <div class="legend-item" v-for="item in legendItems" :key="item.label">
+        <span class="legend-swatch" :style="{ background: colorFn(item.value) }"></span>
+        <span class="legend-label">{{ item.label }}</span>
+        <span class="legend-value">{{ formatLegendValue(item) }}</span>
+      </div>
+    </div>
   </div>
 </template>
