@@ -9,11 +9,25 @@ export function minuteSeed(): number {
   )
 }
 
+
+function lcg(s:number):number {
+  return (s * 1664525 + 1013904223) & 0xffffffff;
+}
+
+export function * lcgIterator(seed: number): IterableIterator<number> {
+  let s :number  = lcg(seed)
+  while (true) {
+    yield s;
+    s = lcg(s)
+  }
+}
+
 export function seededShuffle<T>(arr: T[], seed: number): T[] {
   const a = [...arr]
-  let s = seed
+  let lcgSeries = lcgIterator(seed)
+  let s = seed;
   for (let i = a.length - 1; i > 0; i--) {
-    s = (s * 1664525 + 1013904223) & 0xffffffff
+    s = lcgSeries.next().value
     const j = Math.abs(s) % (i + 1)
     const tmp = a[i] as T
     a[i] = a[j] as T
