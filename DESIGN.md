@@ -126,6 +126,11 @@ Global controls bar:
 
 Seed for run i = `((startSeed + i * step) >>> 0)`. Defaults reproduce original behaviour (seeds 0..K-1).
 
+- **LCG bit shift**: range 0–31, default 0 — unsigned right-shifts the LCG output before the
+  Fisher-Yates modulo (`s >>> shift`). 0 = full 32-bit value. Higher values discard low-order bits
+  and use only the statistically stronger upper bits; above ~28 only a handful of bits remain and
+  visible banding appears.
+
 Heatmap card (internal):
 - **Color scale**: dropdown inside the heatmap card — YlGnBu (default), Viridis, Plasma, Inferno, Magma, Warm, Cool, RdYlGn; left/right arrow keys cycle through scales when focused
 
