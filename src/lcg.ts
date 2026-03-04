@@ -1,0 +1,23 @@
+export function minuteSeed(): number {
+  const now = new Date()
+  return (
+    now.getFullYear() * 1000000 +
+    (now.getMonth() + 1) * 10000 +
+    now.getDate() * 100 +
+    now.getHours() * 100 +
+    now.getMinutes()
+  )
+}
+
+export function seededShuffle<T>(arr: T[], seed: number): T[] {
+  const a = [...arr]
+  let s = seed
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff
+    const j = Math.abs(s) % (i + 1)
+    const tmp = a[i] as T
+    a[i] = a[j] as T
+    a[j] = tmp
+  }
+  return a
+}
